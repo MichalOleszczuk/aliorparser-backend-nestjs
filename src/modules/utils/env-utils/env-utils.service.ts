@@ -25,7 +25,7 @@ export class EnvUtilsService {
           !!files
             ? files.includes(fileName) && /^.env/.test(fileName)
             : /^.env/.test(fileName),
-        );
+        ).map(name => `${customPath}/${name}`);
 
       return envFileNames;
     }
