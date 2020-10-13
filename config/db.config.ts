@@ -15,9 +15,9 @@ export const dbConfig = registerAs<() => PostgresConnectionOptions>(
     );
 
     config = dbEntries.reduce(function(map, [envKey, envVar]) {
-      const mapedKey = envKey.split(dbPrefix)[1].toLowerCase();
+      const mapKey = envKey.split(dbPrefix)[1].toLowerCase();
 
-      map[mapedKey] = envVar;
+      map[mapKey] = envVar;
       return map;
     }, config);
 

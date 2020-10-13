@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import { Request, Response } from 'express';
 import { AuthService } from '../auth.service';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { LoginService } from './login.service';
@@ -18,7 +27,11 @@ export class LoginController {
 
   @UseGuards(LocalAuthGuard)
   @Post()
-  async login(@Request() req) {
-    return this.authService.login(req.user);
+  @HttpCode(200)
+  async login(@Req() request: Request, @Res() response: Response) {
+    const { access_token } = await this.authService.login(request.user);
+    response.cookie('Authorization', { Bearer: access_token });
+
+    return response.end();
   }
 }
