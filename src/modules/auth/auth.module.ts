@@ -6,6 +6,7 @@ import { UsersModule } from '../users/users.module';
 import { AuthService } from './auth.service';
 import { LoginController } from './login/login.controller';
 import { LoginService } from './login/login.service';
+import { RegisterController } from './register/register.controller';
 import { LocalStrategy } from './strategies/local.strategy';
 
 @Module({
@@ -22,7 +23,7 @@ import { LocalStrategy } from './strategies/local.strategy';
       inject: [ConfigService],
     }),
   ],
-  controllers: [LoginController],
+  controllers: [LoginController, RegisterController],
   providers: [LoginService, AuthService, LocalStrategy],
 })
 export class AuthModule {}

@@ -1,32 +1,53 @@
-import { Injectable } from '@nestjs/common';
-
-export type User = any;
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { validate } from 'class-validator';
+import { Repository } from 'typeorm';
+import { CreateUserDto } from './dto';
+import { UserEntity } from './user.entity';
 
 @Injectable()
 export class UsersService {
-  private readonly users: User[];
+  constructor(
+    @InjectRepository(UserEntity)
+    private usersRepository: Repository<UserEntity>,
+  ) {}
 
-  constructor() {
-    this.users = [
-      {
-        userId: 1,
-        username: 'siema',
-        password: 'siema',
-      },
-      {
-        userId: 2,
-        username: 'chris',
-        password: 'secret',
-      },
-      {
-        userId: 3,
-        username: 'maria',
-        password: 'guess',
-      },
-    ];
+  findAll(): Promise<UserEntity[]> {
+    return this.usersRepository.find();
   }
 
-  async findOne(username: string): Promise<User | undefined> {
-    return this.users.find(user => user.username === username);
+  findOne(id: string): Promise<UserEntity> {
+    return this.usersRepository.findOne(id);
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.usersRepository.delete(id);
+  }
+
+  async create({ username, password }: CreateUserDto): Promise<UserEntity> {
+    const user = await this.usersRepository.findOne({ username });
+
+    if (user) {
+      const errors = { username: 'Username must be unique.' };
+      throw new HttpException(
+        { message: 'Input data validation failed', errors },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const newUser = new UserEntity({ username, password });
+
+    const errors = await validate(newUser);
+
+    if (errors.length > 0) {
+      const _errors = { username: 'Userinput is not valid.' };
+      throw new HttpException(
+        { message: 'Input data validation failed', _errors },
+        HttpStatus.BAD_REQUEST,
+      );
+    } else {
+      const savedUser = await this.usersRepository.save(newUser);
+      return savedUser;
+    }
   }
 }
