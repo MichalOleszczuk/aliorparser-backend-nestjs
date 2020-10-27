@@ -20,6 +20,10 @@ export class UsersService {
     return this.usersRepository.findOne(id);
   }
 
+  findByUsername(username: string): Promise<UserEntity> {
+    return this.usersRepository.findOne({ username });
+  }
+
   async remove(id: string): Promise<void> {
     await this.usersRepository.delete(id);
   }

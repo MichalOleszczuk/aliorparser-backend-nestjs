@@ -1,36 +1,39 @@
 import {
+  Body,
+  ClassSerializerInterceptor,
   Controller,
   Get,
   HttpCode,
   Post,
-  Req,
   Res,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { LoginUserDto } from '../../users/dto/login-user.dto';
+import { UsersService } from '../../users/users.service';
 import { AuthService } from '../auth.service';
-import { LocalAuthGuard } from '../guards/local-auth.guard';
-import { LoginService } from './login.service';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @Controller('login')
 export class LoginController {
   constructor(
-    private readonly loginService: LoginService,
+    private readonly usersService: UsersService,
     private authService: AuthService,
   ) {}
 
-  @UseGuards(LocalAuthGuard)
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get()
-  sayHello(): string {
-    return this.loginService.sayHello();
+  sayHello() {
+    return this.usersService.findAll();
   }
 
-  @UseGuards(LocalAuthGuard)
   @Post()
   @HttpCode(200)
-  async login(@Req() request: Request, @Res() response: Response) {
-    const { access_token } = await this.authService.login(request.user);
-    response.cookie('Authorization', { Bearer: access_token });
+  async login(@Body() loginUserDto: LoginUserDto, @Res() response: Response) {
+    const { access_token } = await this.authService.login(loginUserDto);
+    response.cookie('Authorization', access_token);
 
     return response.end();
   }
